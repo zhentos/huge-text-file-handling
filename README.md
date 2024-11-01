@@ -38,4 +38,4 @@ The repository contains 2 programs:
 
 Some test outputs for the test file 1.3 GB:
 
-![test file]{test.png}
+![test file](test.png)
