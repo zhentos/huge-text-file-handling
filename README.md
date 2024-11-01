@@ -39,3 +39,7 @@ The repository contains 2 programs:
 Some test outputs for the test file 1.3 GB:
 
 ![test file](test.png)
+
+How to video instruction link:
+
+https://www.loom.com/share/7b2a9ad8d8e54744b75f895606e4a047

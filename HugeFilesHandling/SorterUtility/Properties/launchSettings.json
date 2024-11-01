@@ -2,7 +2,7 @@
   "profiles": {
     "SorterUtility": {
       "commandName": "Project",
-      "commandLineArgs": "D:\\Projects\\hugeFileHandling\\HugeFilesHandling\\FileGeneratorUtility\\bin\\Release\\net8.0\\"
+      "commandLineArgs": "-in D:\\Projects\\hugeFileHandling\\HugeFilesHandling\\FileGeneratorUtility\\bin\\Debug\\net8.0\\testfile.txt -out D:\\Temp\\sorted.txt"
     }
   }
 }

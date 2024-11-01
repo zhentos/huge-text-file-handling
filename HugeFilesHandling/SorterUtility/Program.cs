@@ -10,19 +10,36 @@ public class Program
         var timer = new Stopwatch();
         timer.Start();
 
-        string inputFilePath = "testfile.txt"; // Input file path
-        string outputFilePath;
+        string? inputFilePath = null;
+        string outputFilePath = Path.Combine(Environment.CurrentDirectory, "sortedfile.txt"); // Default output file path
 
-        // Check if an output file path was provided as an argument
-        if (args.Length < 1)
+        // Parse command-line arguments
+        for (int i = 0; i < args.Length; i++)
         {
-            // Use a default output file path in the current directory
-            outputFilePath = Path.Combine(Environment.CurrentDirectory, "sortedfile.txt");
-            Console.WriteLine($"No output file path provided. Using default: {outputFilePath}");
+            if (args[i] == "-in" && i + 1 < args.Length)
+            {
+                inputFilePath = args[i + 1]; // Get the input file path
+                i++; // Skip the next argument since it's already processed
+            }
+            else if (args[i] == "-out" && i + 1 < args.Length)
+            {
+                outputFilePath = args[i + 1]; // Get the output file path
+                i++; // Skip the next argument since it's already processed
+            }
         }
-        else
+
+        // Validate that an input file path was provided
+        if (string.IsNullOrEmpty(inputFilePath))
         {
-            outputFilePath = args[0];
+            Console.WriteLine("Error: Input file path is required. Use -in <inputfile>.");
+            return;
+        }
+
+        // Validate the input file path
+        if (!File.Exists(inputFilePath))
+        {
+            Console.WriteLine($"Error: The specified input file '{inputFilePath}' does not exist.");
+            return;
         }
 
         // Validate the output file path
@@ -35,7 +52,6 @@ public class Program
         int optimalChunkSize = CalculateOptimalChunkSize(inputFilePath, 0.5); // Allow 50% of available memory
 
         Console.WriteLine($"Sort process has been started at: {DateTime.Now.ToShortTimeString()}");
-
         Console.WriteLine($"Optimal Chunk Size is: {optimalChunkSize}");
 
         await SortFile(inputFilePath, outputFilePath, optimalChunkSize);
@@ -46,11 +62,12 @@ public class Program
         Console.WriteLine(total);
     }
 
-    // Method to validate the output file path
+    // Method to validate the output file path remains unchanged
     static bool ValidateOutputFilePath(string path)
     {
-        var directory = Path.GetDirectoryName(path);
+        string directory = Path.GetDirectoryName(path);
 
+        // Check if the directory exists
         if (directory != null && !Directory.Exists(directory))
         {
             return false; // Directory does not exist
@@ -63,9 +80,8 @@ public class Program
             File.Delete(path); // Clean up after testing
             return true; // Valid path
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Console.WriteLine(ex.Message);
             return false; // Invalid path or unable to create file
         }
     }
