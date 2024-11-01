@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SorterUtility": {
+      "commandName": "Project",
+      "commandLineArgs": "-f testfile.txt -ln 100"
+    }
+  }
+}
