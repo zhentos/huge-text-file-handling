@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using SorterUtility;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Management;
 using System.Text;
@@ -212,23 +213,37 @@ public class Program
 
     static async Task<string> SortAndSaveChunk(List<string> lines)
     {
-        var sortedLines = lines.Select(line =>
-        {
-            var parts = line.Split(new[] { ". " }, 2, StringSplitOptions.None);
-            return new
-            {
-                Number = int.Parse(parts[0]),
-                Text = parts[1]
-            };
-        })
-        .OrderBy(x => x.Text) // Sort by text first
-        .ThenBy(x => x.Number) // Then sort by number
-        .Select(x => $"{x.Number}. {x.Text}") // Reformat back to original format
-        .ToList();
+        int count = lines.Count;
+        var sortedLines = new (int Number, string Text)[count];
 
+        // Populate the array with parsed data
+        for (int i = 0; i < count; i++)
+        {
+            var parts = lines[i].Split(new[] { ". " }, 2, StringSplitOptions.None);
+            if (parts.Length == 2 && int.TryParse(parts[0], out int number))
+            {
+                sortedLines[i] = (number, parts[1]);
+            }
+        }
+
+        // Sort the array using Array.Sort with a custom comparison
+        Array.Sort(sortedLines, (x, y) =>
+        {
+            int textComparison = x.Text.CompareTo(y.Text);
+            return textComparison == 0 ? x.Number.CompareTo(y.Number) : textComparison;
+        });
+
+        // Prepare the output file name
         string tempFileName = Path.GetTempFileName();
 
-        await File.WriteAllLinesAsync(tempFileName, sortedLines);
+        // Write sorted lines to the temporary file
+        using (var writer = new StreamWriter(tempFileName))
+        {
+            for (int i = 0; i < count; i++)
+            {
+                await writer.WriteLineAsync($"{sortedLines[i].Number}. {sortedLines[i].Text}");
+            }
+        }
 
         return tempFileName;
     }
@@ -240,9 +255,7 @@ public class Program
             try
             {
                 var readers = tempFiles.Select(file => new StreamReader(file)).ToList();
-
-                // Use a list to manage the heap
-                var minHeap = new List<(int Number, string Text, int FileIndex)>();
+                var minHeap = new MinHeap(); // Use a binary min-heap
 
                 // Initialize the heap with the first line of each file
                 for (int i = 0; i < readers.Count; i++)
@@ -252,61 +265,27 @@ public class Program
                         var line = readers[i].ReadLine();
                         var parts = line.Split(new[] { ". " }, 2, StringSplitOptions.None);
 
-                        try
+                        if (parts.Length == 2 && int.TryParse(parts[0], out int number))
                         {
-                            int number = int.Parse(parts[0]);
-                            string text = parts[1];
-
-                            minHeap.Add((number, text, i));
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Error processing line from file {i}: {line}. Exception: {ex.Message}");
+                            minHeap.Insert((number, parts[1], i)); // Add to min-heap
                         }
                     }
                 }
 
-                // Create a method to maintain the heap property
-                void Heapify()
-                {
-                    minHeap.Sort((x, y) =>
-                    {
-                        int textComparison = x.Text.CompareTo(y.Text);
-                        if (textComparison == 0)
-                        {
-                            return x.Number.CompareTo(y.Number);
-                        }
-                        return textComparison;
-                    });
-                }
-
-                // Build the initial heap
-                Heapify();
-
                 while (minHeap.Count > 0)
                 {
-                    var minItem = minHeap[0]; // Get the smallest item
+                    var minItem = minHeap.ExtractMin(); // Get and remove the smallest item
                     writer.WriteLine($"{minItem.Number}. {minItem.Text}");
-                    minHeap.RemoveAt(0); // Remove the smallest item
 
                     // Read the next line from the same file as the minimum item
                     if (!readers[minItem.FileIndex].EndOfStream)
                     {
                         var line = readers[minItem.FileIndex].ReadLine();
-
                         var parts = line.Split(new[] { ". " }, 2, StringSplitOptions.None);
 
-                        try
+                        if (parts.Length == 2 && int.TryParse(parts[0], out int number))
                         {
-                            int number = int.Parse(parts[0]);
-                            string text = parts[1];
-
-                            minHeap.Add((number, text, minItem.FileIndex));
-                            Heapify(); // Re-heapify after adding new item
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Error processing line from file {minItem.FileIndex}: {line}. Exception: {ex.Message}");
+                            minHeap.Insert((number, parts[1], minItem.FileIndex)); // Add to min-heap
                         }
                     }
                 }

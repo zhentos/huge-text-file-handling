@@ -2,7 +2,7 @@
   "profiles": {
     "FileGeneratorUtility": {
       "commandName": "Project",
-      "commandLineArgs": "-ln 1000 -f testfile.txt"
+      "commandLineArgs": "-ln 100000000 -f testfile.txt"
     }
   }
 }
