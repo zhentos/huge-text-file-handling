@@ -65,4 +65,4 @@ Processor(s):              1 Processor(s) Installed.
                            [01]: Intel64 Family 6 Model 158 Stepping 10 GenuineIntel ~3601 Mhz
 Total Physical Memory:     32,714 MB
 
-The input *txt file ~1.3GB was handled in about 14 minutes which is not great but it is what it is :)
+The input *txt file ~1.3GB was handled in about 10 minutes which is not great but it is what it is :)
