@@ -14,6 +14,7 @@ Both parts can be repeated within the file. You need to get another file as outp
 the lines are sorted. Sorting criteria: String part is compared first, if it matches then
 Number.
 Those in the example above, it should be:
+
 1. Apple
 415. Apple
 2. Banana is yellow
